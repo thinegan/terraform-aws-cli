@@ -3,7 +3,7 @@
 *
 
 # Specific to Terraform installation
-!hashicorp.asc
+!security/**
 
 # Specific to Hadolint linter
 !hadolint.yaml

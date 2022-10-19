@@ -1,27 +1,27 @@
-# Setup build arguments with default versions
-ARG AWS_CLI_VERSION
-ARG TERRAFORM_VERSION
+# Setup build arguments
+ARG AWS_CLI_VERSION=1.25.50
+ARG TERRAFORM_VERSION=1.3.1
 ARG PYTHON_MAJOR_VERSION=3.9
-ARG DEBIAN_VERSION=bullseye-20210902-slim
+ARG DEBIAN_VERSION=bullseye-20220801-slim
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Download Terraform binary
 FROM debian:${DEBIAN_VERSION} as terraform
+ARG TARGETARCH
 ARG TERRAFORM_VERSION
 RUN apt-get update
-RUN apt-get install --no-install-recommends -y curl=7.74.0-1.3+deb11u1
+RUN apt-get install --no-install-recommends -y curl=7.74.0-1.3+deb11u3
 RUN apt-get install --no-install-recommends -y ca-certificates=20210119
-RUN apt-get install --no-install-recommends -y unzip=6.0-26
-RUN apt-get install --no-install-recommends -y gnupg=2.2.27-2
+RUN apt-get install --no-install-recommends -y unzip=6.0-26+deb11u1
+RUN apt-get install --no-install-recommends -y gnupg=2.2.27-2+deb11u2
 WORKDIR /workspace
-RUN curl -Os https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS
-RUN curl -Os https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-RUN curl -Os https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.sig
-COPY hashicorp.asc hashicorp.asc
+RUN curl --silent --show-error --fail --remote-name https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${TARGETARCH}.zip
+COPY security/hashicorp.asc ./
+COPY security/terraform_${TERRAFORM_VERSION}** ./
 RUN gpg --import hashicorp.asc
 RUN gpg --verify terraform_${TERRAFORM_VERSION}_SHA256SUMS.sig terraform_${TERRAFORM_VERSION}_SHA256SUMS
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN grep terraform_${TERRAFORM_VERSION}_linux_amd64.zip terraform_${TERRAFORM_VERSION}_SHA256SUMS | sha256sum -c -
-RUN unzip -j terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+RUN sha256sum --check --strict --ignore-missing terraform_${TERRAFORM_VERSION}_SHA256SUMS
+RUN unzip -j terraform_${TERRAFORM_VERSION}_linux_${TARGETARCH}.zip
 
 # Install AWS CLI using PIP
 FROM debian:${DEBIAN_VERSION} as aws-cli
@@ -29,12 +29,12 @@ ARG AWS_CLI_VERSION
 ARG PYTHON_MAJOR_VERSION
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends python3=${PYTHON_MAJOR_VERSION}.2-3
-RUN apt-get install -y --no-install-recommends python3-pip=20.3.4-4
-RUN pip3 install --no-cache-dir setuptools==60.8.2
+RUN apt-get install -y --no-install-recommends python3-pip=20.3.4-4+deb11u1
+RUN pip3 install --no-cache-dir setuptools==64.0.1
 RUN pip3 install --no-cache-dir awscli==${AWS_CLI_VERSION}
 
 # Build final image
-FROM debian:${DEBIAN_VERSION}
+FROM debian:${DEBIAN_VERSION} as build
 LABEL maintainer="bgauduch@github"
 ARG PYTHON_MAJOR_VERSION
 RUN apt-get update \

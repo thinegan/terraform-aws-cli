@@ -7,7 +7,7 @@ on:
 
 jobs:
   load_supported_versions:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -19,14 +19,14 @@ jobs:
       - name: Save supported versions as output
         id: set-matrix
         run: |
-          SUPPORTED_VERSIONS=$(cat ./supported_versions.json)
-          SUPPORTED_VERSIONS="${SUPPORTED_VERSIONS//'%'/%25}"
-          SUPPORTED_VERSIONS="${SUPPORTED_VERSIONS//$'\n'/%0A}"
-          SUPPORTED_VERSIONS="${SUPPORTED_VERSIONS//$'\r'/%0D}"
-          echo "::set-output name=matrix::${SUPPORTED_VERSIONS}"
+          VERSIONS=$(cat ./supported_versions.json)
+          VERSIONS="${VERSIONS//'%'/%25}"
+          VERSIONS="${VERSIONS//$'\n'/%0A}"
+          VERSIONS="${VERSIONS//$'\r'/%0D}"
+          echo "::set-output name=matrix::${VERSIONS}"
 
   build_push_release:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: load_supported_versions
 
     strategy:
@@ -43,23 +43,24 @@ jobs:
       - name: Get and save the release tag
         run: echo "RELEASE_TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
-      - name: Build and save the image release tag
-        run: echo "IMAGE_TAG=release-${RELEASE_TAG}_terraform-${{ matrix.tf_version }}_awscli-${{ matrix.awscli_version }}" >> $GITHUB_ENV
-
-      - name: Build image
-        run: docker image build . --file Dockerfile --build-arg TERRAFORM_VERSION=${{ matrix.tf_version }} --build-arg AWS_CLI_VERSION=${{ matrix.awscli_version }} --tag ${ORGANIZATION}/${IMAGE_NAME}:${IMAGE_TAG}
-
       - name: Login to Docker Hub registry
-        run: echo '${{ secrets.DOCKERHUB_PASS }}' | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        run: echo '${{ secrets.DOCKERHUB_PAT }}' | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-      - name: Push image to registry
-        run: docker push ${ORGANIZATION}/${IMAGE_NAME}:${IMAGE_TAG}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-      - name: Save image
-        run: docker image save -o ${IMAGE_NAME}-${IMAGE_TAG}.tar ${ORGANIZATION}/${IMAGE_NAME}:${IMAGE_TAG}
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Upload image artifact
-        uses: actions/upload-artifact@v2
+      - name: Build and push container images
+        uses: docker/build-push-action@v3
         with:
-          name: ${{ env.IMAGE_NAME }}-${{ env.IMAGE_TAG }}
-          path: ${{ env.IMAGE_NAME }}-${{ env.IMAGE_TAG }}.tar
+          context: .
+          platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/386
+          build-args: |
+            TERRAFORM_VERSION=${{ matrix.tf_versions }}
+            AWS_CLI_VERSION=${{ matrix.awscli_versions }}
+          tags: zenika/terraform-aws-cli:release-${{ env.RELEASE_TAG }}_terraform-${{ matrix.tf_versions }}_awscli-${{ matrix.awscli_versions }}
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

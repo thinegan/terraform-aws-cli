@@ -7,22 +7,18 @@ on:
     branches:
       - "master"
     paths:
-      - "Dockerfile"
-      - "supported_versions.json"
-      - "hashicorp.asc"
-      - "tests/**"
       - ".dockerignore"
-      - "hadolint.yaml"
       - ".github/workflows/push-latest.yml"
-
-env:
-  ORGANIZATION: "zenika"
-  IMAGE_NAME: "terraform-aws-cli"
-  IMAGE_TAG: "latest"
+      - "Dockerfile"
+      - "hadolint.yaml"
+      - "hashicorp.asc"
+      - "supported_versions.json"
+      - "supported_platforms.json"
+      - "tests/**"
 
 jobs:
   build_push_latest:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Check out the repo
@@ -30,23 +26,28 @@ jobs:
 
       - name: Retrieve latest suported versions
         run: |
-          echo "AWS_VERSION=$(jq -r '.awscli_version | sort | .[-1]' supported_versions.json)" >> $GITHUB_ENV
-          echo "TF_VERSION=$(jq -r '.tf_version | sort | .[-1]' supported_versions.json)" >> $GITHUB_ENV
-
-      - name: Build image
-        run: docker image build . --file Dockerfile --build-arg TERRAFORM_VERSION=${TF_VERSION} --build-arg AWS_CLI_VERSION=${AWS_VERSION} --tag $ORGANIZATION/$IMAGE_NAME:$IMAGE_TAG
+          echo "TF_VERSION=$(jq -r '.tf_versions | sort | .[-1]' supported_versions.json)" >> $GITHUB_ENV
+          echo "AWS_VERSION=$(jq -r '.awscli_versions | sort | .[-1]' supported_versions.json)" >> $GITHUB_ENV
 
       - name: Login to Docker Hub registry
-        run: echo '${{ secrets.DOCKERHUB_PASS }}' | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        run: echo '${{ secrets.DOCKERHUB_PAT }}' | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-      - name: Push image to registry
-        run: docker push $ORGANIZATION/$IMAGE_NAME:$IMAGE_TAG
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-      - name: Save image
-        run: docker image save -o $IMAGE_NAME-$IMAGE_TAG.tar $ORGANIZATION/$IMAGE_NAME:$IMAGE_TAG
+      - name: Set up Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Upload image artifact
-        uses: actions/upload-artifact@v2
+      - name: Build and push container images
+        uses: docker/build-push-action@v3
         with:
-          name: ${{ env.IMAGE_NAME }}-${{ env.IMAGE_TAG }}
-          path: ${{ env.IMAGE_NAME }}-${{ env.IMAGE_TAG }}.tar
+          context: .
+          platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/386
+          build-args: |
+            TERRAFORM_VERSION=${{ env.TF_VERSION }}
+            AWS_CLI_VERSION=${{ env.AWS_VERSION }}
+          tags: zenika/terraform-aws-cli:latest
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
