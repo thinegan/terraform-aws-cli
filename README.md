@@ -16,7 +16,7 @@ Supported versions are listed in the [`supported_versions.json`](https://github.
 
 The following image tag strategy is applied:
 * `zenika/terraform-aws-cli:latest` - build from master
-  * Included CLI versions are the newest in the [`supported_versions.json` ](https://github.com/Zenika/terraform-aws-cli/blob/master/supported_versions.json) file.
+  * Included CLI versions are the latest in [`supported_versions.json` ](https://github.com/Zenika/terraform-aws-cli/blob/master/supported_versions.json) file.
 * `zenika/terraform-aws-cli:release-S.T_terraform-UU.VV.WW_awscli-XX.YY.ZZ` - build from releases
   * `release-S.T` is the release tag
   * `terraform-UU.VV.WWW` is the **Terraform** version included in the image
@@ -57,7 +57,7 @@ docker container run -it --rm -e "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" -e "AW
 > The `--rm` flag will completely destroy the container and its data on exit.
 
 ### ⚙️ Build the image
-You can build the image locally directly from the Dockerfiles, using the build script.
+The image can be built locally directly from the Dockerfiles, using the build script.
 
 It will :
 * Lint the Dockerfile with [Hadolint](https://github.com/hadolint/hadolint);
