@@ -1,8 +1,8 @@
 # Setup build arguments
-ARG AWS_CLI_VERSION=1.25.50
-ARG TERRAFORM_VERSION=1.3.1
+ARG AWS_CLI_VERSION
+ARG TERRAFORM_VERSION
 ARG PYTHON_MAJOR_VERSION=3.9
-ARG DEBIAN_VERSION=bullseye-20220801-slim
+ARG DEBIAN_VERSION=bullseye-20230109-slim
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Download Terraform binary
@@ -31,7 +31,7 @@ ARG PYTHON_MAJOR_VERSION
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends python3=${PYTHON_MAJOR_VERSION}.2-3
 RUN apt-get install -y --no-install-recommends python3-pip=20.3.4-4+deb11u1
-RUN pip3 install --no-cache-dir setuptools==64.0.1
+RUN pip3 install --no-cache-dir setuptools==67.1.0
 RUN pip3 install --no-cache-dir awscli==${AWS_CLI_VERSION}
 
 # Build final image
