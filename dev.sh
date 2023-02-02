@@ -13,12 +13,12 @@ set -eo pipefail
 IMAGE_NAME="zenika/terraform-aws-cli"
 [[ -n $3 ]] && IMAGE_TAG=$3 || IMAGE_TAG="dev"
 
-# Set platform for Hadolint image
-[[ "$(uname -m)" == "arm64" ]] && PLATFORM="linux/arm64" || PLATFORM="linux/amd64"
+# Set platform for Hadolint image (only linux/arm64 or linux/arm64 supported)
+PLATEFORM="linux/$(uname -m)"
 
 # Lint Dockerfile
 echo "Linting Dockerfile..."
-docker run --rm --interactive --volume "${PWD}":/data --workdir /data --platform "${PLATFORM}" hadolint/hadolint:2.12.0-alpine /bin/hadolint --config hadolint.yaml Dockerfile
+docker container run --rm --interactive --volume "${PWD}":/data --workdir /data --platform "${PLATEFORM}" hadolint/hadolint:2.12.0-alpine /bin/hadolint --config hadolint.yaml Dockerfile
 echo "Lint Successful!"
 
 # Build image
@@ -32,7 +32,7 @@ export AWS_VERSION=${AWS_VERSION} && export TF_VERSION=${TF_VERSION}
 envsubst '${AWS_VERSION},${TF_VERSION}' < tests/container-structure-tests.yml.template > tests/container-structure-tests.yml
 echo "Test config successfully generated!"
 echo "Executing container structure test..."
-docker container run --rm --interactive --volume "${PWD}"/tests/container-structure-tests.yml:/tests.yml:ro -v /var/run/docker.sock:/var/run/docker.sock:ro gcr.io/gcp-runtimes/container-structure-test:v1.10.0 test --image $IMAGE_NAME:$IMAGE_TAG --config /tests.yml
+docker container run --rm --interactive --volume "${PWD}"/tests/container-structure-tests.yml:/tests.yml:ro -v /var/run/docker.sock:/var/run/docker.sock:ro gcr.io/gcp-runtimes/container-structure-test:v1.14.0 test --image $IMAGE_NAME:$IMAGE_TAG --config /tests.yml
 
 # cleanup
 unset AWS_VERSION
