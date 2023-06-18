@@ -10,8 +10,8 @@ FROM debian:${DEBIAN_VERSION} as terraform
 ARG TARGETARCH
 ARG TERRAFORM_VERSION
 RUN apt-get update
-RUN apt-get install --no-install-recommends -y libcurl4=7.74.0-1.3+deb11u3
-RUN apt-get install --no-install-recommends -y curl=7.74.0-1.3+deb11u3
+RUN apt-get install --no-install-recommends -y libcurl4=7.74.0-1.3+deb11u7
+RUN apt-get install --no-install-recommends -y curl=7.74.0-1.3+deb11u7
 RUN apt-get install --no-install-recommends -y ca-certificates=20210119
 RUN apt-get install --no-install-recommends -y unzip=6.0-26+deb11u1
 RUN apt-get install --no-install-recommends -y gnupg=2.2.27-2+deb11u2
@@ -41,7 +41,7 @@ ARG PYTHON_MAJOR_VERSION
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     ca-certificates=20210119\
-    git=1:2.30.2-1 \
+    git=1:2.30.2-1+deb11u2 \
     jq=1.6-2.1 \
     python3=${PYTHON_MAJOR_VERSION}.2-3 \
     openssh-client=1:8.4p1-5+deb11u1 \
