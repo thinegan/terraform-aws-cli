@@ -11,7 +11,7 @@ ARG TERRAFORM_VERSION
 RUN apt-get update
 # RUN apt-get install --no-install-recommends -y libcurl4=7.74.0-1.3+deb11u7
 RUN apt-get install --no-install-recommends -y ca-certificates=20230311
-RUN apt-get install --no-install-recommends -y curl=7.88.1-10+deb12u4
+RUN apt-get install --no-install-recommends -y curl=7.88.1-10+deb12u5
 RUN apt-get install --no-install-recommends -y gnupg=2.2.40-1.1
 RUN apt-get install --no-install-recommends -y unzip=6.0-28
 WORKDIR /workspace
