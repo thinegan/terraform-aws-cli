@@ -28,7 +28,7 @@ FROM debian:${DEBIAN_VERSION} as aws-cli
 ARG AWS_CLI_VERSION
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends ca-certificates=20230311
-RUN apt-get install -y --no-install-recommends curl=7.88.1-10+deb12u4
+RUN apt-get install -y --no-install-recommends curl=7.88.1-10+deb12u5
 RUN apt-get install -y --no-install-recommends gnupg=2.2.40-1.1
 RUN apt-get install -y --no-install-recommends unzip=6.0-28
 RUN apt-get install -y --no-install-recommends git=1:2.39.2-1.1
