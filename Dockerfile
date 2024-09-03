@@ -1,7 +1,7 @@
 # Setup build arguments
 ARG AWS_CLI_VERSION
 ARG TERRAFORM_VERSION
-ARG DEBIAN_VERSION=bookworm-20240612-slim
+ARG DEBIAN_VERSION=bookworm-20240812-slim
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Download Terraform binary
@@ -11,7 +11,7 @@ ARG TERRAFORM_VERSION
 RUN apt-get update
 # RUN apt-get install --no-install-recommends -y libcurl4=7.74.0-1.3+deb11u7
 RUN apt-get install --no-install-recommends -y ca-certificates=20230311
-RUN apt-get install --no-install-recommends -y curl=7.88.1-10+deb12u6
+RUN apt-get install --no-install-recommends -y curl=7.88.1-10+deb12u7
 RUN apt-get install --no-install-recommends -y gnupg=2.2.40-1.1
 RUN apt-get install --no-install-recommends -y unzip=6.0-28
 WORKDIR /workspace
@@ -28,7 +28,7 @@ FROM debian:${DEBIAN_VERSION} as aws-cli
 ARG AWS_CLI_VERSION
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends ca-certificates=20230311
-RUN apt-get install -y --no-install-recommends curl=7.88.1-10+deb12u6
+RUN apt-get install -y --no-install-recommends curl=7.88.1-10+deb12u7
 RUN apt-get install -y --no-install-recommends gnupg=2.2.40-1.1
 RUN apt-get install -y --no-install-recommends unzip=6.0-28
 RUN apt-get install -y --no-install-recommends git=1:2.39.2-1.1
@@ -50,7 +50,7 @@ RUN apt-get update \
     ca-certificates=20230311\
     git=1:2.39.2-1.1 \
     jq=1.6-2.1 \
-    openssh-client=1:9.2p1-2+deb12u2 \
+    openssh-client=1:9.2p1-2+deb12u3 \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 WORKDIR /workspace
